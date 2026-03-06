@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan File Prep Checklist Builder</title>
+<style>
+  :root {
+    --navy: #1a2744;
+    --blue: #2563eb;
+    --blue-light: #3b82f6;
+    --blue-pale: #eff6ff;
+    --green: #059669;
+    --green-pale: #ecfdf5;
+    --amber: #d97706;
+    --amber-pale: #fffbeb;
+    --red: #dc2626;
+    --red-pale: #fef2f2;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    line-height: 1.6;
+  }
+  .header {
+    background: linear-gradient(135deg, var(--navy) 0%, #2d4a7a 100%);
+    color: white;
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .header p { font-size: 15px; opacity: 0.85; max-width: 600px; margin: 0 auto; }
+  .container { max-width: 860px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* INTAKE FORM */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+  .card-subtitle {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-bottom: 20px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group.full-width { grid-column: 1 / -1; }
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 5px;
+  }
+  select, input[type="number"], input[type="text"] {
+    padding: 10px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--gray-800);
+    background: white;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  select:focus, input:focus { border-color: var(--blue); }
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .checkbox-group label {
+    display: flex; align-items: center; gap: 6px;
+    font-weight: 400; font-size: 14px; cursor: pointer;
+    padding: 6px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    transition: all 0.15s;
+  }
+  .checkbox-group label:hover { border-color: var(--blue-light); background: var(--blue-pale); }
+  .checkbox-group input[type="checkbox"] { accent-color: var(--blue); }
+
+  .btn-generate {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: var(--blue);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-generate:hover { background: #1d4ed8; }
+  .btn-generate:active { transform: scale(0.99); }
+
+  /* RESULTS */
+  #results { display: none; }
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .results-header h2 { font-size: 22px; font-weight: 700; color: var(--gray-900); }
+  .scenario-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-green { background: var(--green-pale); color: var(--green); }
+  .badge-amber { background: var(--amber-pale); color: var(--amber); }
+  .badge-red { background: var(--red-pale); color: var(--red); }
+
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .summary-stat {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .summary-stat .num { font-size: 28px; font-weight: 800; }
+  .summary-stat .label { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+
+  /* RED FLAGS */
+  .flags-section {
+    background: var(--red-pale);
+    border: 1.5px solid #fca5a5;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .flags-section.amber {
+    background: var(--amber-pale);
+    border-color: #fcd34d;
+  }
+  .flags-section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flag-item {
+    font-size: 14px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .flag-item:last-child { border-bottom: none; }
+  .flag-icon { flex-shrink: 0; margin-top: 2px; }
+
+  /* CHECKLIST */
+  .checklist-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .checklist-header {
+    padding: 16px 20px;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .checklist-header:hover { background: var(--gray-100); }
+  .checklist-count {
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--blue-pale);
+    color: var(--blue);
+    padding: 2px 10px;
+    border-radius: 12px;
+  }
+  .checklist-body { padding: 4px 0; }
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--gray-100);
+    transition: background 0.1s;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item:hover { background: var(--gray-50); }
+  .checklist-item input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: var(--green);
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .checklist-item .item-text { flex: 1; }
+  .checklist-item .item-name { font-size: 14px; font-weight: 600; color: var(--gray-800); }
+  .checklist-item .item-note { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+  .checklist-item.checked .item-name { text-decoration: line-through; color: var(--gray-400); }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--gray-200);
+    padding: 12px 24px;
+    display: none;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+  }
+  .progress-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .progress-text { font-size: 14px; font-weight: 700; color: var(--gray-700); white-space: nowrap; }
+  .btn-copy {
+    padding: 8px 18px;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-copy:hover { background: #253a5e; }
+
+  .btn-reset {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: var(--gray-500);
+    font-size: 14px;
+    font-weight: 600;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  .btn-reset:hover { border-color: var(--gray-400); color: var(--gray-700); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Loan File Prep Checklist Builder</h1>
+  <p>Enter your borrower's scenario. Get a complete document checklist, red flags, and underwriting tips — before you submit the file.</p>
+</div>
+
+<div class="container">
+  <!-- INTAKE FORM -->
+  <div id="intake">
+    <div class="card">
+      <div class="card-title">Borrower Scenario</div>
+      <div class="card-subtitle">Fill in what you know. The checklist adapts to the specific loan type and borrower profile.</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Loan Program</label>
+          <select id="loanProgram">
+            <option value="">Select...</option>
+            <option value="conventional">Conventional</option>
+            <option value="fha">FHA</option>
+            <option value="va">VA</option>
+            <option value="usda">USDA</option>
+            <option value="jumbo">Jumbo</option>
+            <option value="nonqm">Non-QM / Bank Statement</option>
+            <option value="reverse">Reverse Mortgage (HECM)</option>
+            <option value="dpa">DPA Program (Down Payment Assistance)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Loan Purpose</label>
+          <select id="loanPurpose">
+            <option value="">Select...</option>
+            <option value="purchase">Purchase</option>
+            <option value="refi-rate">Refinance — Rate & Term</option>
+            <option value="refi-cashout">Refinance — Cash Out</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Employment Type</label>
+          <select id="employmentType">
+            <option value="">Select...</option>
+            <option value="w2">W-2 Employee</option>
+            <option value="self-employed">Self-Employed</option>
+            <option value="1099">1099 Contractor</option>
+            <option value="retired">Retired / Fixed Income</option>
+            <option value="mixed">Mixed Income (W-2 + Side Business)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estimated Credit Score</label>
+          <select id="creditScore">
+            <option value="">Select...</option>
+            <option value="740+">740+</option>
+            <option value="700-739">700 – 739</option>
+            <option value="660-699">660 – 699</option>
+            <option value="620-659">620 – 659</option>
+            <option value="580-619">580 – 619</option>
+            <option value="below-580">Below 580</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Property Type</label>
+          <select id="propertyType">
+            <option value="">Select...</option>
+            <option value="sfr">Single Family Residence</option>
+            <option value="condo">Condo / Townhouse</option>
+            <option value="multi">Multi-Unit (2-4 units)</option>
+            <option value="manufactured">Manufactured Home</option>
+            <option value="investment">Investment Property</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Down Payment %</label>
+          <select id="downPayment">
+            <option value="">Select...</option>
+            <option value="0">0% (VA/USDA)</option>
+            <option value="3">3% (Conv 97)</option>
+            <option value="3.5">3.5% (FHA)</option>
+            <option value="5">5%</option>
+            <option value="10">10%</option>
+            <option value="20">20%+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estimated Loan Amount</label>
+          <input type="text" id="loanAmount" placeholder="e.g. 400000">
+        </div>
+        <div class="form-group">
+          <label>Estimated DTI %</label>
+          <select id="dtiRange">
+            <option value="">Select or skip...</option>
+            <option value="low">Under 36%</option>
+            <option value="mid">36% – 43%</option>
+            <option value="high">43% – 50%</option>
+            <option value="over50">Over 50%</option>
+            <option value="unknown">Not sure yet</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>Special Circumstances (check all that apply)</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" value="first-time"> First-time buyer</label>
+            <label><input type="checkbox" value="gift-funds"> Gift funds for down payment</label>
+            <label><input type="checkbox" value="coborrower"> Co-borrower / Non-occupant</label>
+            <label><input type="checkbox" value="foreign-national"> Foreign national / ITIN</label>
+            <label><input type="checkbox" value="recent-bankruptcy"> Bankruptcy in last 7 yrs</label>
+            <label><input type="checkbox" value="recent-foreclosure"> Foreclosure in last 7 yrs</label>
+            <label><input type="checkbox" value="job-change"> Job change in last 2 yrs</label>
+            <label><input type="checkbox" value="large-deposit"> Large recent deposits</label>
+            <label><input type="checkbox" value="student-loans"> Student loan debt</label>
+            <label><input type="checkbox" value="child-support"> Child support / alimony</label>
+            <label><input type="checkbox" value="rental-income"> Using rental income to qualify</label>
+            <label><input type="checkbox" value="dpa-layered"> Layered DPA / grant</label>
+          </div>
+        </div>
+      </div>
+      <button class="btn-generate" onclick="generateChecklist()">Generate Checklist</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="results-header">
+      <h2>File Prep Checklist</h2>
+      <span id="scenarioBadge" class="scenario-badge"></span>
+    </div>
+    <div id="scenarioSummary" style="font-size:14px;color:var(--gray-600);margin-bottom:16px;"></div>
+
+    <div class="summary-bar" id="summaryBar"></div>
+    <div id="flagsContainer"></div>
+    <div id="checklistContainer"></div>
+    <button class="btn-reset" onclick="resetForm()">Start New Scenario</button>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-wrap" id="progressBar">
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <span class="progress-text" id="progressText">0 / 0</span>
+  <button class="btn-copy" onclick="copyChecklist()">Copy as Text</button>
+</div>
+
+<script>
+// ============================================================
+// LOAN PROGRAM KNOWLEDGE BASE
+// ============================================================
+const programData = {
+  conventional: {
+    name: "Conventional",
+    minCredit: 620,
+    minDown: 3,
+    maxDTI: 50,
+    pmiThreshold: 20,
+    notes: "Fannie/Freddie guidelines. PMI required below 20% down. AUS: DU or LP."
+  },
+  fha: {
+    name: "FHA",
+    minCredit: 580,
+    minDown: 3.5,
+    maxDTI: 57,
+    notes: "FHA MIP required for life of loan (if <10% down). Manual UW if score <620. UFMIP 1.75% financed into loan."
+  },
+  va: {
+    name: "VA",
+    minCredit: 580,
+    minDown: 0,
+    maxDTI: 60,
+    notes: "No PMI. COE required. VA funding fee applies (waived for disabled vets). Residual income test required."
+  },
+  usda: {
+    name: "USDA",
+    minCredit: 640,
+    minDown: 0,
+    maxDTI: 41,
+    notes: "Property must be in eligible rural area. Income limits apply (115% AMI). Guarantee fee: 1% upfront + 0.35% annual."
+  },
+  jumbo: {
+    name: "Jumbo",
+    minCredit: 700,
+    minDown: 10,
+    maxDTI: 43,
+    notes: "Non-conforming. Typically requires 6-12 months reserves. Stricter asset documentation."
+  },
+  nonqm: {
+    name: "Non-QM / Bank Statement",
+    minCredit: 620,
+    minDown: 10,
+    maxDTI: 50,
+    notes: "12 or 24 months bank statements used for income. Higher rates. Manual underwriting. No AUS."
+  },
+  reverse: {
+    name: "Reverse Mortgage (HECM)",
+    minCredit: 0,
+    minDown: 0,
+    maxDTI: 0,
+    notes: "Borrower must be 62+. HUD counseling required. Financial assessment for willingness/ability to pay taxes and insurance."
+  },
+  dpa: {
+    name: "DPA Program",
+    minCredit: 620,
+    minDown: 0,
+    maxDTI: 50,
+    notes: "Varies by program. Often layered with FHA or Conv 97. Income limits and geographic restrictions apply. Homebuyer education typically required."
+  }
+};
+
+// ============================================================
+// DOCUMENT REQUIREMENTS ENGINE
+// ============================================================
+function getDocuments(scenario) {
+  const docs = [];
+  const flags = [];
+  const tips = [];
+
+  // --- UNIVERSAL DOCS ---
+  docs.push({ section: "Identity & Authorization", items: [
+    { name: "Government-issued photo ID (both borrowers if applicable)", note: "Must be current / non-expired" },
+    { name: "Social Security card or ITIN documentation", note: "" },
+    { name: "Signed borrower authorization / 1003 application", note: "" },
+    { name: "4506-C (IRS transcript request)", note: "Signed by all borrowers" },
+  ]});
+
+  // --- INCOME DOCS by employment type ---
+  const incomeItems = [];
+  if (scenario.employment === "w2" || scenario.employment === "mixed") {
+    incomeItems.push({ name: "Most recent 30 days of paystubs", note: "Must show YTD earnings. All employers." });
+    incomeItems.push({ name: "W-2s — last 2 years", note: "All employers. Must match tax returns." });
+    incomeItems.push({ name: "Federal tax returns — last 2 years (1040)", note: "All pages + all schedules" });
+    if (scenario.employment === "mixed") {
+      incomeItems.push({ name: "Business tax returns — last 2 years (1120S, 1065, or Schedule C)", note: "Includes K-1s if partnership/S-Corp" });
+      incomeItems.push({ name: "Year-to-date P&L statement", note: "If more than 3 months since last tax filing" });
+      flags.push("Mixed income (W-2 + business): UW will average the business income over 2 years. If business income is declining year-over-year, it may be excluded entirely.");
+    }
+  }
+  if (scenario.employment === "self-employed" || scenario.employment === "1099") {
+    incomeItems.push({ name: "Federal tax returns — last 2 years (1040)", note: "All pages, all schedules" });
+    incomeItems.push({ name: "Business tax returns — last 2 years", note: "1120S (S-Corp), 1065 (Partnership), or Schedule C (Sole Prop)" });
+    incomeItems.push({ name: "K-1s — last 2 years (if applicable)", note: "" });
+    incomeItems.push({ name: "Year-to-date Profit & Loss statement", note: "CPA-prepared preferred. Required if >Q1 of current year." });
+    incomeItems.push({ name: "Business license or CPA letter", note: "Confirms business is active and operating" });
+    if (scenario.employment === "1099") {
+      incomeItems.push({ name: "1099 forms — last 2 years", note: "From all payers" });
+    }
+    flags.push("Self-employed / 1099: Underwriting uses NET income from tax returns, not gross. Deductions reduce qualifying income. Prepare the borrower for this gap.");
+    if (scenario.program === "nonqm") {
+      incomeItems.push({ name: "12 or 24 months personal bank statements", note: "All pages, all accounts. Deposits will be analyzed for income." });
+      incomeItems.push({ name: "12 or 24 months business bank statements", note: "All pages. Must show consistent deposits." });
+      tips.push("Non-QM bank statement: Large cash deposits without clear paper trail will be excluded. Flag any deposits that aren't regular business income.");
+    }
+  }
+  if (scenario.employment === "retired") {
+    incomeItems.push({ name: "Social Security award letter / 1099-SSA", note: "Most recent" });
+    incomeItems.push({ name: "Pension award letter or distribution statement", note: "If applicable" });
+    incomeItems.push({ name: "Federal tax returns — last 2 years (1040)", note: "Verifies all income sources" });
+    incomeItems.push({ name: "1099-R forms (retirement distributions)", note: "Last 2 years" });
+    incomeItems.push({ name: "Investment / brokerage account statements", note: "If using asset depletion for income" });
+    tips.push("Retired borrower: If using asset depletion (drawing down 401k/IRA to qualify), most programs use 70% of assets divided by remaining loan term. Verify the specific guideline for this program.");
+  }
+  docs.push({ section: "Income Documentation", items: incomeItems });
+
+  // --- ASSET DOCS ---
+  const assetItems = [
+    { name: "Bank statements — last 2 months (all accounts)", note: "All pages even if blank. Checking + savings." },
+    { name: "Retirement / 401k / IRA statements", note: "Most recent quarterly statement" },
+  ];
+  if (scenario.program === "jumbo") {
+    assetItems.push({ name: "Proof of 6-12 months reserves after closing", note: "Jumbo requirement. Can be retirement accounts at 60-70% value." });
+    flags.push("Jumbo loans typically require 6-12 months of PITIA reserves post-closing. Verify borrower has sufficient liquid/semi-liquid assets.");
+  }
+  if (scenario.specials.includes("gift-funds")) {
+    assetItems.push({ name: "Gift letter (signed by donor and borrower)", note: "Must state: amount, relationship, property address, no repayment required" });
+    assetItems.push({ name: "Donor bank statements showing ability to gift", note: "Showing sufficient funds + transfer" });
+    assetItems.push({ name: "Proof of transfer (wire confirmation or deposit receipt)", note: "" });
+    if (scenario.program === "conventional" && parseFloat(scenario.downPayment) < 20) {
+      flags.push("Conventional < 20% down with gift funds: Borrower must contribute at least 5% of their own funds for 1-unit primary (some programs). Verify specific overlay.");
+    }
+    if (scenario.program === "fha") {
+      tips.push("FHA allows 100% gift funds for down payment. Donor must be family member, employer, or approved organization. No gifts from interested parties (seller, realtor, builder).");
+    }
+  }
+  if (scenario.specials.includes("large-deposit")) {
+    assetItems.push({ name: "Written explanation for each large deposit", note: "With paper trail — source documentation for each" });
+    flags.push("Large deposits (>50% of monthly income or >$1,000 for manual UW) will require full sourcing. Missing documentation here is one of the top reasons files get stuck in underwriting.");
+  }
+  docs.push({ section: "Asset Documentation", items: assetItems });
+
+  // --- PROPERTY DOCS ---
+  const propItems = [];
+  if (scenario.purpose === "purchase") {
+    propItems.push({ name: "Fully executed purchase contract", note: "All pages, all addenda, all signatures" });
+    propItems.push({ name: "Earnest money deposit receipt", note: "Must match contract terms" });
+    if (scenario.propertyType === "condo") {
+      propItems.push({ name: "HOA questionnaire / condo certification", note: "Warrantable condo check — litigation, owner-occupancy ratio, HOA budget" });
+      propItems.push({ name: "Master insurance policy (HO-6 / condo policy)", note: "" });
+      flags.push("Condo: Must be warrantable (Fannie/Freddie approved for conventional). Non-warrantable condos need non-QM or portfolio. Check litigation, commercial space %, and investor concentration.");
+    }
+    if (scenario.propertyType === "manufactured") {
+      propItems.push({ name: "HUD data plate / certification label", note: "Must be permanently affixed. Built after June 15, 1976." });
+      propItems.push({ name: "Engineer's foundation certification", note: "Permanent foundation required" });
+      flags.push("Manufactured home: Must be on permanent foundation, titled as real property (not personal property), and built after 6/15/1976. Many investors have additional overlays — check before submitting.");
+    }
+    if (scenario.propertyType === "multi") {
+      propItems.push({ name: "Current lease agreements for all units", note: "" });
+      propItems.push({ name: "Rent roll (last 12 months if available)", note: "" });
+      if (scenario.specials.includes("rental-income")) {
+        propItems.push({ name: "Schedule E from tax returns (last 2 years)", note: "To document existing rental income history" });
+        tips.push("Multi-unit with rental income: FHA allows 75% of rental income from other units. Conventional typically uses 75% of appraised rent minus PITIA. Must have landlord experience for some programs.");
+      }
+    }
+    if (scenario.propertyType === "investment") {
+      propItems.push({ name: "Current lease agreements", note: "" });
+      propItems.push({ name: "Rent roll / rental history", note: "" });
+      propItems.push({ name: "Schedule E from tax returns (last 2 years)", note: "" });
+      flags.push("Investment property: Higher down payment required (15-25% conventional). Higher credit score minimums. No FHA/VA/USDA. Reserves typically required.");
+    }
+  }
+  if (scenario.purpose === "refi-rate" || scenario.purpose === "refi-cashout") {
+    propItems.push({ name: "Current mortgage statement (most recent)", note: "Shows current balance, rate, payment" });
+    propItems.push({ name: "Homeowners insurance declarations page", note: "Current policy" });
+    propItems.push({ name: "Property tax bill (most recent)", note: "" });
+    if (scenario.purpose === "refi-cashout") {
+      propItems.push({ name: "Title report / preliminary title", note: "" });
+      flags.push("Cash-out refinance: Verify borrower has owned property for at least 6 months (most programs). FHA requires 12 months of ownership and on-time mortgage payments.");
+      if (scenario.program === "va") {
+        tips.push("VA cash-out: Can go up to 100% LTV. No seasoning requirement if veteran is current on existing loan.");
+      }
+    }
+  }
+  propItems.push({ name: "Homeowners insurance quote or binder", note: "Coverage must meet loan amount requirements" });
+  if (scenario.propertyType === "condo" && scenario.purpose !== "purchase") {
+    propItems.push({ name: "HOA contact info + monthly dues amount", note: "" });
+  }
+  docs.push({ section: "Property Documentation", items: propItems });
+
+  // --- PROGRAM-SPECIFIC DOCS ---
+  const programItems = [];
+  if (scenario.program === "va") {
+    programItems.push({ name: "Certificate of Eligibility (COE)", note: "Pull from VA portal or request from borrower" });
+    programItems.push({ name: "DD-214 (if separated from service)", note: "Member 4 copy preferred" });
+    programItems.push({ name: "Statement of Service (if active duty)", note: "From commanding officer" });
+    tips.push("VA: If borrower has used VA entitlement before, check remaining entitlement. Partial entitlement may require a down payment on the difference.");
+  }
+  if (scenario.program === "fha") {
+    programItems.push({ name: "FHA case number assignment", note: "Pull from FHA Connection" });
+    if (scenario.purpose === "purchase") {
+      tips.push("FHA purchase: Seller can contribute up to 6% of sales price toward closing costs. Great tool for low-cash borrowers.");
+    }
+  }
+  if (scenario.program === "usda") {
+    programItems.push({ name: "USDA eligibility map confirmation", note: "Screenshot showing property is in eligible area" });
+    programItems.push({ name: "Household income documentation (all adults)", note: "USDA counts ALL household income, not just borrower" });
+    flags.push("USDA: Income limit is based on HOUSEHOLD income, not just borrower income. Non-borrowing spouse and adult children income counts. This is the #1 USDA deal-killer.");
+  }
+  if (scenario.program === "reverse") {
+    programItems.push({ name: "HUD-approved counseling certificate", note: "Borrower must complete counseling BEFORE application" });
+    programItems.push({ name: "Proof of age (62+ for all borrowers)", note: "" });
+    programItems.push({ name: "Financial assessment worksheet", note: "Ability to pay taxes, insurance, HOA" });
+  }
+  if (scenario.program === "dpa") {
+    programItems.push({ name: "DPA program application", note: "Specific to the program being used" });
+    programItems.push({ name: "Homebuyer education certificate", note: "Most DPA programs require HUD-approved course" });
+    programItems.push({ name: "Income eligibility documentation", note: "DPA programs have income caps — verify against AMI limits" });
+    flags.push("DPA programs: Processing takes extra time (often 2-4 weeks for program approval on top of loan approval). Submit DPA paperwork simultaneously with the loan file, not after.");
+  }
+  if (programItems.length > 0) {
+    docs.push({ section: "Program-Specific Requirements", items: programItems });
+  }
+
+  // --- SPECIAL CIRCUMSTANCES ---
+  const specialItems = [];
+  if (scenario.specials.includes("first-time")) {
+    specialItems.push({ name: "Homebuyer education certificate (if required)", note: "Required for Conv 97, most DPA programs, some FHA" });
+    tips.push("First-time buyer: Check if the specific program requires homebuyer education. Framework, eHome America, and HUD-approved counselors all qualify.");
+  }
+  if (scenario.specials.includes("coborrower")) {
+    specialItems.push({ name: "Co-borrower full application (1003)", note: "" });
+    specialItems.push({ name: "Co-borrower income and asset documentation", note: "Same requirements as primary borrower" });
+    specialItems.push({ name: "Non-occupant co-borrower addendum (if applicable)", note: "" });
+    if (scenario.program === "conventional") {
+      flags.push("Non-occupant co-borrower on Conventional: Max LTV typically 95% (vs 97% for occupant-only). Some overlays restrict to 90% LTV.");
+    }
+  }
+  if (scenario.specials.includes("foreign-national")) {
+    specialItems.push({ name: "Valid passport + visa", note: "" });
+    specialItems.push({ name: "ITIN letter from IRS (if no SSN)", note: "" });
+    specialItems.push({ name: "Employment authorization document (EAD)", note: "If applicable" });
+    flags.push("Foreign national / ITIN: Most conventional and FHA programs require lawful residency. Non-QM or portfolio lending may be needed. Verify eligibility before pulling credit.");
+  }
+  if (scenario.specials.includes("recent-bankruptcy")) {
+    specialItems.push({ name: "Bankruptcy discharge papers", note: "Full discharge documentation with dates" });
+    specialItems.push({ name: "Bankruptcy schedules (assets and liabilities)", note: "" });
+    specialItems.push({ name: "Letter of explanation for bankruptcy", note: "Signed, with circumstances and recovery steps" });
+    const waitPeriods = {
+      conventional: "4 years (Ch 7) / 2 years (Ch 13 discharge)",
+      fha: "2 years (Ch 7) / 1 year into Ch 13 repayment with court approval",
+      va: "2 years (Ch 7) / 1 year into Ch 13 repayment",
+    };
+    const wp = waitPeriods[scenario.program] || "Varies by program";
+    flags.push(`Bankruptcy waiting period for ${programData[scenario.program]?.name || "this program"}: ${wp}. Verify exact discharge date against application date.`);
+  }
+  if (scenario.specials.includes("recent-foreclosure")) {
+    specialItems.push({ name: "Foreclosure documentation / proof of completion", note: "" });
+    specialItems.push({ name: "Letter of explanation for foreclosure", note: "" });
+    flags.push("Foreclosure waiting periods: Conventional = 7 years. FHA = 3 years. VA = 2 years. Verify exact date of foreclosure completion.");
+  }
+  if (scenario.specials.includes("job-change")) {
+    specialItems.push({ name: "Offer letter from new employer", note: "Must show salary, start date, terms" });
+    specialItems.push({ name: "Employment verification (VOE) from previous employer", note: "" });
+    specialItems.push({ name: "Letter of explanation for job change", note: "Especially if different field/industry" });
+    flags.push("Job change in last 2 years: If the borrower changed industries (not just employers), underwriting may question income stability. Same-field moves are much easier to document.");
+  }
+  if (scenario.specials.includes("student-loans")) {
+    specialItems.push({ name: "Student loan statements (all loans)", note: "Current balance and monthly payment" });
+    tips.push("Student loans in deferment: FHA uses 1% of balance or IBR payment. Conventional (Fannie) uses 0.5% of balance OR actual IBR payment. This can make or break DTI — run both calculations.");
+  }
+  if (scenario.specials.includes("child-support")) {
+    specialItems.push({ name: "Divorce decree / separation agreement", note: "" });
+    specialItems.push({ name: "Court order for child support / alimony", note: "" });
+    specialItems.push({ name: "Proof of payment (last 12 months)", note: "If using as qualifying income" });
+    specialItems.push({ name: "Proof of receipt (last 6 months)", note: "If receiving and counting as income" });
+    tips.push("Child support / alimony income: Must document 6+ months of consistent receipt AND 3+ years of continuance remaining. Otherwise it cannot be used as qualifying income.");
+  }
+  if (scenario.specials.includes("rental-income") && scenario.propertyType !== "multi" && scenario.propertyType !== "investment") {
+    specialItems.push({ name: "Current lease agreement for rental property", note: "" });
+    specialItems.push({ name: "Schedule E from tax returns (last 2 years)", note: "" });
+    specialItems.push({ name: "Proof of rent receipt (bank deposits)", note: "" });
+  }
+  if (scenario.specials.includes("dpa-layered")) {
+    specialItems.push({ name: "DPA program approval / commitment letter", note: "" });
+    specialItems.push({ name: "DPA-specific addendum or rider", note: "" });
+    tips.push("Layered DPA: Some DPA programs cannot be combined with certain loan types or other DPAs. Verify compatibility BEFORE locking the loan.");
+  }
+  if (specialItems.length > 0) {
+    docs.push({ section: "Special Circumstance Documents", items: specialItems });
+  }
+
+  // --- CREDIT-RELATED FLAGS ---
+  const creditVal = scenario.creditScore;
+  if (creditVal === "580-619") {
+    flags.push("Credit 580-619: FHA eligible but likely manual underwriting. Conventional will not approve. Expect additional LOE requirements and compensating factors needed.");
+  }
+  if (creditVal === "below-580") {
+    flags.push("Credit below 580: Very limited options. FHA requires 10% down at this score range. Most lenders have overlays above 580. Non-QM may be the path.");
+  }
+  if (creditVal === "620-659" && scenario.program === "conventional") {
+    flags.push("Credit 620-659 on Conventional: Eligible but expect LLPA (loan-level pricing adjustments) that significantly increase the rate. Run FHA comparison — may be better deal for the borrower.");
+  }
+
+  // --- DTI FLAGS ---
+  if (scenario.dti === "high") {
+    flags.push("DTI 43-50%: Most programs allow this with strong compensating factors (high credit, significant reserves, low LTV). Document the compensating factors proactively.");
+  }
+  if (scenario.dti === "over50") {
+    flags.push("DTI over 50%: Only FHA (up to 57% with AUS approval) and VA (up to 60% with residual income) typically go this high. Conventional max is 50% with DU approval. Verify program eligibility.");
+  }
+
+  return { docs, flags, tips };
+}
+
+// ============================================================
+// UI LOGIC
+// ============================================================
+function generateChecklist() {
+  const scenario = {
+    program: document.getElementById("loanProgram").value,
+    purpose: document.getElementById("loanPurpose").value,
+    employment: document.getElementById("employmentType").value,
+    creditScore: document.getElementById("creditScore").value,
+    propertyType: document.getElementById("propertyType").value,
+    downPayment: document.getElementById("downPayment").value,
+    loanAmount: document.getElementById("loanAmount").value,
+    dti: document.getElementById("dtiRange").value,
+    specials: [...document.querySelectorAll('.checkbox-group input:checked')].map(c => c.value)
+  };
+
+  if (!scenario.program || !scenario.purpose || !scenario.employment) {
+    alert("Please select at least a loan program, loan purpose, and employment type.");
+    return;
+  }
+
+  const { docs, flags, tips } = getDocuments(scenario);
+  const totalItems = docs.reduce((sum, s) => sum + s.items.length, 0);
+
+  // Complexity badge
+  const complexity = flags.length;
+  let badgeClass, badgeText;
+  if (complexity <= 1) { badgeClass = "badge-green"; badgeText = "Standard File"; }
+  else if (complexity <= 3) { badgeClass = "badge-amber"; badgeText = "Watch Items"; }
+  else { badgeClass = "badge-red"; badgeText = "Complex File"; }
+
+  const prog = programData[scenario.program];
+  document.getElementById("scenarioBadge").className = "scenario-badge " + badgeClass;
+  document.getElementById("scenarioBadge").textContent = badgeText;
+  document.getElementById("scenarioSummary").textContent =
+    `${prog?.name || scenario.program} — ${scenario.purpose.replace("refi-","Refi ")} — ${scenario.employment.replace("-"," ")} — ${scenario.creditScore || "?"} credit — ${scenario.propertyType || "?"}`;
+
+  // Summary bar
+  document.getElementById("summaryBar").innerHTML = `
+    <div class="summary-stat"><div class="num" style="color:var(--blue)">${totalItems}</div><div class="label">Documents Required</div></div>
+    <div class="summary-stat"><div class="num" style="color:${flags.length > 2 ? 'var(--red)' : 'var(--amber)'}">${flags.length}</div><div class="label">Red Flags</div></div>
+    <div class="summary-stat"><div class="num" style="color:var(--green)">${tips.length}</div><div class="label">Pro Tips</div></div>
+  `;
+
+  // Flags
+  let flagsHTML = "";
+  if (flags.length > 0) {
+    flagsHTML += `<div class="flags-section"><h3><span class="flag-icon">&#9888;&#65039;</span> Red Flags — Address Before Submitting</h3>`;
+    flags.forEach(f => { flagsHTML += `<div class="flag-item"><span class="flag-icon">&#8226;</span><span>${f}</span></div>`; });
+    flagsHTML += `</div>`;
+  }
+  if (tips.length > 0) {
+    flagsHTML += `<div class="flags-section amber"><h3><span class="flag-icon">&#128161;</span> Pro Tips</h3>`;
+    tips.forEach(t => { flagsHTML += `<div class="flag-item"><span class="flag-icon">&#8226;</span><span>${t}</span></div>`; });
+    flagsHTML += `</div>`;
+  }
+  document.getElementById("flagsContainer").innerHTML = flagsHTML;
+
+  // Checklist sections
+  let checklistHTML = "";
+  docs.forEach((section, si) => {
+    checklistHTML += `<div class="checklist-section">`;
+    checklistHTML += `<div class="checklist-header" onclick="toggleSection(this)"><span>${section.section}</span><span class="checklist-count">${section.items.length} items</span></div>`;
+    checklistHTML += `<div class="checklist-body">`;
+    section.items.forEach((item, ii) => {
+      const id = `chk-${si}-${ii}`;
+      checklistHTML += `<div class="checklist-item" id="item-${id}">
+        <input type="checkbox" id="${id}" onchange="updateProgress(this)">
+        <div class="item-text">
+          <div class="item-name">${item.name}</div>
+          ${item.note ? `<div class="item-note">${item.note}</div>` : ""}
+        </div>
+      </div>`;
+    });
+    checklistHTML += `</div></div>`;
+  });
+  document.getElementById("checklistContainer").innerHTML = checklistHTML;
+
+  // Show results, hide intake
+  document.getElementById("intake").style.display = "none";
+  document.getElementById("results").style.display = "block";
+  document.getElementById("progressBar").style.display = "flex";
+  updateProgressBar();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  body.style.display = body.style.display === "none" ? "block" : "none";
+}
+
+function updateProgress(checkbox) {
+  const item = checkbox.closest(".checklist-item");
+  if (checkbox.checked) { item.classList.add("checked"); }
+  else { item.classList.remove("checked"); }
+  updateProgressBar();
+}
+
+function updateProgressBar() {
+  const all = document.querySelectorAll('#checklistContainer input[type="checkbox"]');
+  const checked = document.querySelectorAll('#checklistContainer input[type="checkbox"]:checked');
+  const pct = all.length ? (checked.length / all.length * 100) : 0;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `${checked.length} / ${all.length}`;
+  if (pct === 100) {
+    document.getElementById("progressFill").style.background = "var(--green)";
+    document.getElementById("progressText").textContent = "File Complete!";
+  } else {
+    document.getElementById("progressFill").style.background = "var(--blue)";
+  }
+}
+
+function resetForm() {
+  document.getElementById("intake").style.display = "block";
+  document.getElementById("results").style.display = "none";
+  document.getElementById("progressBar").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function copyChecklist() {
+  const sections = document.querySelectorAll(".checklist-section");
+  let text = "LOAN FILE PREP CHECKLIST\n";
+  text += document.getElementById("scenarioSummary").textContent + "\n";
+  text += "========================\n\n";
+
+  // flags
+  const flagItems = document.querySelectorAll(".flags-section .flag-item span:last-child");
+  if (flagItems.length) {
+    text += "RED FLAGS & TIPS:\n";
+    flagItems.forEach(f => { text += "  - " + f.textContent + "\n"; });
+    text += "\n";
+  }
+
+  sections.forEach(section => {
+    const header = section.querySelector(".checklist-header span:first-child").textContent;
+    text += header.toUpperCase() + "\n";
+    const items = section.querySelectorAll(".checklist-item");
+    items.forEach(item => {
+      const cb = item.querySelector("input").checked ? "[x]" : "[ ]";
+      const name = item.querySelector(".item-name").textContent;
+      const note = item.querySelector(".item-note")?.textContent || "";
+      text += `  ${cb} ${name}${note ? " — " + note : ""}\n`;
+    });
+    text += "\n";
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(".btn-copy");
+    btn.textContent = "Copied!";
+    setTimeout(() => { btn.textContent = "Copy as Text"; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
